@@ -24,6 +24,11 @@
 .DS_Store
 *.pem
 
+# local assets/research (do not commit)
+/Assets/
+Boots-to-Journeys-PRD.md
+Boots-to-Journeys-Forensic-Analysis.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*
