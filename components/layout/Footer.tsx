@@ -11,7 +11,7 @@ const footerLinks = [
 export function Footer() {
   return (
     <footer className="border-t border-mist bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-12 pb-16 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="font-display text-xl text-horizon">
@@ -32,6 +32,13 @@ export function Footer() {
         </div>
         <div className="mt-8 border-t border-mist pt-6 text-xs text-charcoal/70">
           © 2026 Boots to Journeys. All rights reserved.
+        </div>
+        <div className="mt-10 flex justify-center">
+          <img
+            src="/footer-center-logo.png"
+            alt="Centervert"
+            className="h-6 w-auto"
+          />
         </div>
       </div>
     </footer>
