@@ -11,7 +11,9 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "month", label: "By Month" },
 ];
 
-const cards: Record<TabKey, Array<{ title: string; image: string }>> = {
+type Card = { title: string; image: string; subtitle?: string };
+
+const cards: Record<TabKey, Array<Card>> = {
   traveler: [
     { title: "Family", image: "/travel-family.jpg" },
     { title: "Couples", image: "/travel-couples.jpg" },
@@ -20,18 +22,38 @@ const cards: Record<TabKey, Array<{ title: string; image: string }>> = {
     { title: "Solo", image: "/travel-solo.jpg" },
   ],
   destination: [
-    { title: "Tanzania", image: "/hero-video/ezgif-frame-140.jpg" },
-    { title: "Italy", image: "/hero-video/ezgif-frame-220.jpg" },
-    { title: "France", image: "/hero-video/ezgif-frame-300.jpg" },
-    { title: "Norway", image: "/hero-video/ezgif-frame-380.jpg" },
-    { title: "Japan", image: "/hero-video/ezgif-frame-460.jpg" },
+    { title: "Italy", image: "/destination-italy.jpg" },
+    { title: "Ireland", image: "/destination-ireland.jpg" },
+    { title: "Greece", image: "/destination-greece.jpg" },
+    { title: "Alaska", image: "/destination-alaska.jpg" },
+    { title: "Spain", image: "/destination-spain.jpg" },
   ],
   month: [
-    { title: "January", image: "/hero-video/ezgif-frame-520.jpg" },
-    { title: "March", image: "/hero-video/ezgif-frame-560.jpg" },
-    { title: "June", image: "/hero-video/ezgif-frame-620.jpg" },
-    { title: "September", image: "/hero-video/ezgif-frame-700.jpg" },
-    { title: "December", image: "/hero-video/ezgif-frame-760.jpg" },
+    {
+      title: "Jan–Feb",
+      subtitle: "Caribbean",
+      image: "/month-caribbean.jpg",
+    },
+    {
+      title: "Mar–Apr",
+      subtitle: "Ireland",
+      image: "/month-ireland.jpg",
+    },
+    {
+      title: "May–Jun",
+      subtitle: "Alaska",
+      image: "/month-alaska.jpg",
+    },
+    {
+      title: "Jul–Aug",
+      subtitle: "Iceland",
+      image: "/month-iceland.jpg",
+    },
+    {
+      title: "Nov–Dec",
+      subtitle: "Greece",
+      image: "/month-greece.jpg",
+    },
   ],
 };
 
@@ -79,9 +101,16 @@ export function TravelDiscovery() {
                   className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
                 />
               </div>
-              <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.35em] text-charcoal">
-                {card.title}
-              </p>
+              <div className="mt-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-charcoal">
+                  {card.title}
+                </p>
+                {card.subtitle && (
+                  <p className="mt-2 text-[11px] uppercase tracking-[0.25em] text-charcoal/70">
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>

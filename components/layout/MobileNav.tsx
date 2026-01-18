@@ -104,7 +104,7 @@ export function MobileNav() {
               </div>
             </div>
             <Button className="w-full" onClick={() => setIsOpen(false)}>
-              Book Now
+              Start Booking
             </Button>
           </div>
         </nav>

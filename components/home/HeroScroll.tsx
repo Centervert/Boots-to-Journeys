@@ -37,6 +37,14 @@ export function HeroScroll() {
   const rafRef = useRef<number | null>(null);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const progressRef = useRef({ frame: 0, progress: 0 });
+  const debugRef = useRef({
+    loadStartedAt: 0,
+    firstFrameLogged: false,
+    loadCompleteLogged: false,
+    scrollLogs: 0,
+    drawLogs: 0,
+    missingLogs: 0,
+  });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -64,6 +72,22 @@ export function HeroScroll() {
 
     let loadedCount = 0;
     const totalToLoad = frameCount;
+    debugRef.current.loadStartedAt = Date.now();
+    // #region agent log
+    fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "debug-session",
+        runId: "run1",
+        hypothesisId: "H1",
+        location: "HeroScroll.tsx:loadEffect",
+        message: "image_load_start",
+        data: { frameCount, isMobile, totalToLoad },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion agent log
 
     const loadImage = (i: number) => {
       if (imagesRef.current[i]) return;
@@ -74,12 +98,55 @@ export function HeroScroll() {
         loadedCount += 1;
         if (mounted && i === 0) {
           setHasFirstFrame(true);
+          if (!debugRef.current.firstFrameLogged) {
+            debugRef.current.firstFrameLogged = true;
+            // #region agent log
+            fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sessionId: "debug-session",
+                runId: "run1",
+                hypothesisId: "H1",
+                location: "HeroScroll.tsx:loadEffect",
+                message: "first_frame_loaded",
+                data: {
+                  msFromStart: Date.now() - debugRef.current.loadStartedAt,
+                  src: img.src,
+                  loadedCount,
+                },
+                timestamp: Date.now(),
+              }),
+            }).catch(() => {});
+            // #endregion agent log
+          }
         }
         if (mounted && loadedCount === 1) {
           drawFrame(0, 0);
         }
         if (mounted && loadedCount === totalToLoad) {
           setIsLoaded(true);
+          if (!debugRef.current.loadCompleteLogged) {
+            debugRef.current.loadCompleteLogged = true;
+            // #region agent log
+            fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sessionId: "debug-session",
+                runId: "run1",
+                hypothesisId: "H1",
+                location: "HeroScroll.tsx:loadEffect",
+                message: "all_frames_loaded",
+                data: {
+                  msFromStart: Date.now() - debugRef.current.loadStartedAt,
+                  totalToLoad,
+                },
+                timestamp: Date.now(),
+              }),
+            }).catch(() => {});
+            // #endregion agent log
+          }
         }
       };
       imagesRef.current[i] = img;
@@ -179,6 +246,24 @@ export function HeroScroll() {
         progressRef.current = { frame: frameIndex, progress };
         setScrollProgress(progress);
         drawFrame(frameIndex, progress);
+        if (debugRef.current.scrollLogs < 3) {
+          debugRef.current.scrollLogs += 1;
+          // #region agent log
+          fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId: "debug-session",
+              runId: "run1",
+              hypothesisId: "H2",
+              location: "HeroScroll.tsx:scroll",
+              message: "scroll_progress",
+              data: { progress, frameIndex, frameCount },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {});
+          // #endregion agent log
+        }
       });
     };
 
@@ -213,7 +298,27 @@ export function HeroScroll() {
         }
       }
     }
-    if (!image || !image.complete) return;
+    if (!image || !image.complete) {
+      if (debugRef.current.missingLogs < 3) {
+        debugRef.current.missingLogs += 1;
+        // #region agent log
+        fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: "debug-session",
+            runId: "run1",
+            hypothesisId: "H2",
+            location: "HeroScroll.tsx:drawFrame",
+            message: "missing_frame",
+            data: { frameIndex, loaded: loadedRef.current[frameIndex] },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log
+      }
+      return;
+    }
 
     const { width, height } = sizeRef.current;
     const zoom = 1 + (ZOOM_MAX - 1) * easeInOutCubic(progress);
@@ -239,6 +344,32 @@ export function HeroScroll() {
     ctx.imageSmoothingQuality = "high";
     ctx.clearRect(0, 0, width, height);
     ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+    if (debugRef.current.drawLogs < 3) {
+      debugRef.current.drawLogs += 1;
+      // #region agent log
+      fetch("http://127.0.0.1:7243/ingest/404e8a44-8436-41e5-a174-f018a1d152a9", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: "debug-session",
+          runId: "run1",
+          hypothesisId: "H3",
+          location: "HeroScroll.tsx:drawFrame",
+          message: "draw_frame",
+          data: {
+            frameIndex,
+            zoom,
+            imageWidth: image.width,
+            imageHeight: image.height,
+            canvasWidth: width,
+            canvasHeight: height,
+            dpr: sizeRef.current.dpr,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion agent log
+    }
   };
 
   const copyProgress = clamp((scrollProgress - 0.05) / 0.3, 0, 1);

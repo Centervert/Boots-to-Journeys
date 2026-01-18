@@ -41,6 +41,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cursor
+.cursor/
+
+# local folders
+/destination/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
