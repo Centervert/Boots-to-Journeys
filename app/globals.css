@@ -1,0 +1,10 @@
+@config "../tailwind.config.mjs";
+@import "tailwindcss";
+
+body {
+  @apply bg-cloud text-charcoal font-sans antialiased;
+}
+
+img {
+  @apply max-w-full;
+}
