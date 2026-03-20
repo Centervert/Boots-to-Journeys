@@ -314,6 +314,73 @@ export default function OurPlanPage() {
         </ol>
       </Section>
 
+      {/* Infrastructure */}
+      <Section className="bg-cloud">
+        <SectionKicker>Infrastructure</SectionKicker>
+        <SectionTitle className="mt-2">Domains &amp; phone</SectionTitle>
+        <p className="mt-6 text-charcoal/80 leading-relaxed">
+          Behind the scenes, we&apos;re consolidating your digital infrastructure so everything is in one place, easier to manage, and ready to scale.
+        </p>
+
+        <div className="mt-10 space-y-8">
+          {/* Domain Migration */}
+          <div>
+            <h3 className="font-display text-lg font-semibold text-horizon">
+              Domain migration
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/80">
+              Our team has initiated the transfer of all four of your domains from Squarespace to GoDaddy. The transfers are fully underway on our end—we&apos;re now waiting on the registrar migration to complete, which typically takes a few days.
+            </p>
+            <div className="mt-4 overflow-hidden rounded-lg border border-mist">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-mist bg-white">
+                    <th className="px-4 py-3 font-semibold text-horizon">Domain</th>
+                    <th className="px-4 py-3 font-semibold text-horizon">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    "bootstojourneys.com",
+                    "btjtravel.com",
+                    "endlesssojournstravel.com",
+                    "pickcreativeprop.com",
+                  ].map((domain) => (
+                    <tr key={domain} className="border-b border-mist last:border-0">
+                      <td className="px-4 py-3 text-charcoal">{domain}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <span className="h-2 w-2 rounded-full bg-ocean" />
+                          Transfer in progress
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Phone System */}
+          <div>
+            <h3 className="font-display text-lg font-semibold text-horizon">
+              Phone system
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-charcoal/80">
+              We&apos;re developing a plan to migrate your phone lines from RingCentral to{" "}
+              <span className="font-medium text-horizon">Centervert Connect Phone</span>—our
+              unified communications platform. This transition hasn&apos;t been initiated yet; it&apos;s
+              slated for the next phase of work so we can coordinate the cutover without interrupting
+              your day-to-day calls.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-mist bg-white px-4 py-2 text-sm">
+              <span className="h-2 w-2 rounded-full bg-charcoal/30" />
+              <span className="text-charcoal/70">Not yet initiated — next phase</span>
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {/* CTA */}
       <Section className="bg-horizon text-white">
         <SectionKicker className="text-sunset">Next step</SectionKicker>
