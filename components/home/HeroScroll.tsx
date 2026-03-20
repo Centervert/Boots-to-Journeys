@@ -35,13 +35,14 @@ const formatFrameSrc = (index: number, isMobile: boolean) => {
 function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const copyRef = useRef<HTMLDivElement | null>(null);
+  const scrollHintRef = useRef<HTMLDivElement | null>(null);
   const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
   const loadedRef = useRef<boolean[]>([]);
   const rafRef = useRef<number | null>(null);
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const progressRef = useRef({ frame: 0, progress: 0 });
   const currentFrameRef = useRef(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const [useFallbackOnly, setUseFallbackOnly] = useState(false);
@@ -253,6 +254,22 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, [drawFrame]);
 
+  const updateCopyStyle = useCallback((progress: number) => {
+    const copyEl = copyRef.current;
+    const hintEl = scrollHintRef.current;
+    const t = clamp((progress - 0.05) / 0.3, 0, 1);
+    const ease = easeInOutCubic(t);
+    const opacity = 0.5 + 0.5 * ease;
+    const translate = 28 * (1 - ease);
+    if (copyEl) {
+      copyEl.style.opacity = String(opacity);
+      copyEl.style.transform = `translateY(${translate}px)`;
+    }
+    if (hintEl) {
+      hintEl.style.opacity = String(1 - progress);
+    }
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       if (rafRef.current) return;
@@ -278,8 +295,8 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
 
         currentFrameRef.current = frameIndex;
         progressRef.current = { frame: frameIndex, progress };
-        setScrollProgress(progress);
         drawFrame(progress);
+        updateCopyStyle(progress);
       });
     };
 
@@ -291,11 +308,7 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [drawFrame, frameCount]);
-
-  const copyProgress = clamp((scrollProgress - 0.05) / 0.3, 0, 1);
-  const headlineOpacity = 0.5 + 0.5 * easeInOutCubic(copyProgress);
-  const headlineTranslate = 28 * (1 - easeInOutCubic(copyProgress));
+  }, [drawFrame, frameCount, updateCopyStyle]);
 
   return (
     <section
@@ -336,37 +349,22 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
         />
         <div className="relative z-10 flex h-full items-center justify-center px-6 sm:px-10 lg:px-16">
           <div
-            className="text-center text-white"
+            ref={copyRef}
+            className="text-center text-white will-change-[transform,opacity]"
             style={{
               textShadow:
                 "0 2px 4px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)",
+              opacity: 0.5,
+              transform: "translateY(28px)",
             }}
           >
-            <p
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-sunset"
-              style={{
-                opacity: headlineOpacity,
-                transform: `translateY(${headlineTranslate}px)`,
-              }}
-            >
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sunset">
               Veteran-Owned Travel Concierge
             </p>
-            <h1
-              className="mt-6 font-display text-4xl leading-tight text-white/90 sm:text-6xl lg:text-7xl"
-              style={{
-                opacity: headlineOpacity,
-                transform: `translateY(${headlineTranslate}px)`,
-              }}
-            >
+            <h1 className="mt-6 font-display text-4xl leading-tight text-white/90 sm:text-6xl lg:text-7xl">
               Bespoke journeys, handled with military precision.
             </h1>
-            <p
-              className="mx-auto mt-6 max-w-2xl text-base text-white/90 sm:text-lg"
-              style={{
-                opacity: headlineOpacity,
-                transform: `translateY(${headlineTranslate}px)`,
-              }}
-            >
+            <p className="mx-auto mt-6 max-w-2xl text-base text-white/90 sm:text-lg">
               We curate luxury vacations, group trips, and exclusive deals so
               you can focus on the adventure. Book a consult to start planning.
             </p>
@@ -378,8 +376,8 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
           </div>
         </div>
         <div
-          className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/70"
-          style={{ opacity: 1 - scrollProgress }}
+          ref={scrollHintRef}
+          className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/70 will-change-[opacity]"
         >
           Scroll
         </div>

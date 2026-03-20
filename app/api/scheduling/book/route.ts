@@ -1,37 +1,21 @@
 import { NextResponse } from "next/server";
-import { addMinutes } from "date-fns";
 import { TZDate } from "@date-fns/tz";
+import { addMinutes } from "date-fns";
 import { getClientIp } from "@/lib/client-ip";
 import { rateLimit } from "@/lib/rate-limit";
-import {
-  computeAvailableSlots,
-  resolveDayWindow,
-} from "@/lib/scheduling/compute-slots";
-import {
-  fetchAppointmentsOverlappingRange,
-  fetchDateOverride,
-  fetchHostBySlug,
-  fetchWeeklyRules,
-} from "@/lib/scheduling/queries";
 import { schedulingBookSchema } from "@/lib/scheduling/schema";
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { turnstileRequired, verifyTurnstileToken } from "@/lib/turnstile";
 
+const HOST_TZ = "America/New_York";
+const CALL_DURATION_MIN = 30;
 const WEBHOOK_TIMEOUT_MS = 12_000;
-
-function ymdFromInstantInHostTz(instant: Date, hostTz: string): string {
-  const d = new TZDate(instant, hostTz);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 export async function POST(request: Request) {
   const sb = getServiceSupabase();
   if (!sb) {
     return NextResponse.json(
-      { error: "Scheduling is not configured." },
+      { error: "Booking is not configured." },
       { status: 503 }
     );
   }
@@ -52,7 +36,10 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 }
+    );
   }
 
   const parsed = schedulingBookSchema.safeParse(json);
@@ -77,77 +64,23 @@ export async function POST(request: Request) {
     }
   }
 
-  const hostSlug = body.hostSlug ?? "default";
-  const startsAt = new Date(body.startsAt);
+  const [y, m, d] = body.preferredDate.split("-").map(Number);
+  const [h, min] = body.preferredTime.split(":").map(Number);
+  const startsAt = new TZDate(y, m - 1, d, h, min, 0, 0, HOST_TZ);
   if (Number.isNaN(startsAt.getTime())) {
-    return NextResponse.json({ error: "Invalid start time." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid date or time." },
+      { status: 400 }
+    );
   }
+  const endsAt = addMinutes(startsAt, CALL_DURATION_MIN);
 
   try {
-    const host = await fetchHostBySlug(sb, hostSlug);
-    if (!host) {
-      return NextResponse.json({ error: "Host not found." }, { status: 404 });
-    }
-
-    const endsAt = addMinutes(startsAt, host.slot_duration_minutes);
-    const ymd = ymdFromInstantInHostTz(startsAt, host.timezone);
-
-    const [weekly, override] = await Promise.all([
-      fetchWeeklyRules(sb, host.id),
-      fetchDateOverride(sb, host.id, ymd),
-    ]);
-    const overrides = override ? [override] : [];
-    const window = resolveDayWindow(ymd, host, weekly, overrides);
-    if (!window) {
-      return NextResponse.json(
-        { error: "That time is not within available hours." },
-        { status: 400 }
-      );
-    }
-
-    const startMs = startsAt.getTime();
-    const endMs = endsAt.getTime();
-    if (startMs < window.startMs || endMs > window.endMs) {
-      return NextResponse.json(
-        { error: "That time is not within available hours." },
-        { status: 400 }
-      );
-    }
-
-    const [yy, mm, dd] = ymd.split("-").map(Number);
-    const dayMid = new TZDate(yy, mm - 1, dd, 12, 0, 0, 0, host.timezone).getTime();
-
-    const rangeStartIso = new Date(dayMid - 2 * 24 * 60 * 60 * 1000).toISOString();
-    const rangeEndIso = new Date(dayMid + 2 * 24 * 60 * 60 * 1000).toISOString();
-
-    const appointments = await fetchAppointmentsOverlappingRange(
-      sb,
-      host.id,
-      rangeStartIso,
-      rangeEndIso
-    );
-
-    const stillOpen = computeAvailableSlots(
-      ymd,
-      host,
-      weekly,
-      overrides,
-      appointments
-    );
-    const iso = startsAt.toISOString();
-    if (!stillOpen.includes(iso)) {
-      return NextResponse.json(
-        { error: "That slot is no longer available. Pick another time." },
-        { status: 409 }
-      );
-    }
-
     const row = {
-      host_id: host.id,
-      starts_at: iso,
+      starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       status: "confirmed" as const,
-      guest_timezone: body.guestTimezone ?? null,
+      guest_timezone: HOST_TZ,
       full_name: body.fullName,
       email: body.email,
       phone: body.phone,
@@ -167,12 +100,6 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      if (error.code === "23505") {
-        return NextResponse.json(
-          { error: "That slot was just taken. Pick another time." },
-          { status: 409 }
-        );
-      }
       console.error("appointments insert", error);
       return NextResponse.json(
         { error: "Could not complete booking. Try again." },

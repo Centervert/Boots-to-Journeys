@@ -170,10 +170,10 @@ export default function OurPlanPage() {
           </h3>
           <p className="mt-4 text-sm leading-relaxed text-charcoal/85 sm:text-base">
             We built you something we use ourselves:{" "}
-            <span className="font-medium text-horizon">Centervert Connect</span>—scheduling that feels like the tools travelers already know, but runs on{" "}
+            <span className="font-medium text-horizon">Centervert Connect</span>—our own version of Calendly, built from the ground up by Centervert. It runs on{" "}
             <span className="font-medium text-horizon">your</span> site and{" "}
-            <span className="font-medium text-horizon">your</span> data. No separate subscription, no sending leads through someone else&apos;s domain. For many agencies, comparable booking software runs about{" "}
-            <span className="font-semibold text-ocean">$49.99/month</span>—money you get to keep. Think of it as our way of saying thank you for partnering with Centervert on Boots to Journeys.
+            <span className="font-medium text-horizon">your</span> data, so leads never leave btj.travel and you never pay a separate scheduling subscription. Tools like Calendly run about{" "}
+            <span className="font-semibold text-ocean">$49.99/month</span>—that&apos;s money you get to keep. Think of it as our way of saying thank you for partnering with Centervert on Boots to Journeys.
           </p>
         </div>
 
