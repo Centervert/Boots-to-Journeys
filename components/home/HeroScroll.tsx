@@ -256,8 +256,13 @@ function HeroVideoReel({
       /* autoplay can be blocked; metadata listeners still run */
     });
 
+    const pollReady = window.setInterval(() => {
+      if (video.readyState >= 2 && video.duration > 0) markReady();
+    }, 200);
+
     return () => {
       window.clearTimeout(failTimer);
+      window.clearInterval(pollReady);
       video.removeEventListener("loadedmetadata", onReady);
       video.removeEventListener("loadeddata", onReady);
       video.removeEventListener("canplay", onReady);
