@@ -190,6 +190,7 @@ function HeroVideoReel({
   const copyRef = useRef<HTMLDivElement | null>(null);
   const scrollHintRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
+  const readyRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
 
@@ -220,6 +221,49 @@ function HeroVideoReel({
       /* some browsers reject seeks while metadata is settling */
     }
   }, []);
+
+  const markReady = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || readyRef.current) return;
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+    video.pause();
+    readyRef.current = true;
+    const section = sectionRef.current;
+    if (section) scrubTo(measureHeroProgress(section));
+    setIsReady(true);
+  }, [scrubTo]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const failTimer = window.setTimeout(() => {
+      if (!readyRef.current) onUnavailable();
+    }, 4000);
+
+    const onReady = () => markReady();
+    const onFail = () => {
+      if (!readyRef.current) onUnavailable();
+    };
+
+    video.addEventListener("loadedmetadata", onReady);
+    video.addEventListener("loadeddata", onReady);
+    video.addEventListener("canplay", onReady);
+    video.addEventListener("error", onFail);
+    video.src = HERO_VIDEO_SRC;
+    video.load();
+    video.play().then(() => video.pause()).catch(() => {
+      /* autoplay can be blocked; metadata listeners still run */
+    });
+
+    return () => {
+      window.clearTimeout(failTimer);
+      video.removeEventListener("loadedmetadata", onReady);
+      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("error", onFail);
+    };
+  }, [markReady, onUnavailable]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -267,22 +311,9 @@ function HeroVideoReel({
           playsInline
           preload="auto"
           aria-hidden="true"
-          onLoadedMetadata={(event) => {
-            event.currentTarget.pause();
-            const section = sectionRef.current;
-            if (section) scrubTo(measureHeroProgress(section));
-            setIsReady(true);
-          }}
-          onError={onUnavailable}
-        >
-          <source src={HERO_VIDEO_SRC} type="video/mp4" />
-        </video>
-        <HeroOverlays />
-        <HeroCopy
-          copyRef={copyRef}
-          animate
-          status={!isReady ? "Loading destination reel..." : null}
         />
+        <HeroOverlays />
+        <HeroCopy copyRef={copyRef} animate />
         <div
           ref={scrollHintRef}
           className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/70 will-change-[opacity]"
@@ -629,6 +660,7 @@ export function HeroScroll() {
   const prefersReducedMotion = usePrefersReducedMotion();
   const isMobile = useIsMobile();
   const [useFrames, setUseFrames] = useState(false);
+  const handleVideoUnavailable = useCallback(() => setUseFrames(true), []);
 
   if (prefersReducedMotion) {
     return <HeroStatic />;
@@ -644,7 +676,7 @@ export function HeroScroll() {
     <HeroVideoReel
       key={isMobile ? "mobile-video" : "desktop-video"}
       isMobile={isMobile}
-      onUnavailable={() => setUseFrames(true)}
+      onUnavailable={handleVideoUnavailable}
     />
   );
 }
