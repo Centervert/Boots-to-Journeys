@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title: "Boots to Journeys | Travel Concierge",
   description:
-    "Veteran-owned travel concierge in South Carolina specializing in custom itineraries, group trips, cruises, luxury travel, and exclusive deals.",
+    "Veteran-owned travel concierge serving travelers nationwide — custom itineraries, group trips, cruises, luxury travel, and exclusive deals.",
   keywords: [
-    "travel concierge South Carolina",
+    "nationwide travel concierge",
     "veteran owned travel agency",
     "custom travel itinerary",
     "luxury travel planner",

@@ -8,11 +8,11 @@ const canonical = `${siteUrlString()}/contact`;
 export const metadata: Metadata = {
   title: "Contact | Boots to Journeys",
   description:
-    "Contact Boots to Journeys — veteran-owned South Carolina travel concierge. Call, email, or book a complimentary planning call for custom itineraries, cruises, and luxury travel.",
+    "Contact Boots to Journeys — veteran-owned travel concierge serving clients nationwide. Call, email, or book a complimentary planning call for custom itineraries, cruises, and luxury travel.",
   keywords: [
     "Boots to Journeys contact",
-    "South Carolina travel agent",
     "veteran owned travel agency",
+    "nationwide travel concierge",
     "luxury travel concierge",
     "custom vacation planning",
   ],
@@ -37,8 +37,9 @@ export default function ContactPage() {
       </h1>
       <p className="mt-6 text-lg text-charcoal/85">
         We are a <strong>veteran-owned and operated</strong> travel concierge
-        based in <strong>{siteConfig.region}</strong>, helping families and
-        groups design stress-free trips — from all-inclusive resorts and{" "}
+        based in <strong>{siteConfig.headquarters}</strong> and serving{" "}
+        <strong>clients nationwide</strong> — families, couples, and groups
+        designing stress-free trips, from all-inclusive resorts and{" "}
         <Link href="/services" className="text-ocean underline-offset-2 hover:underline">
           ocean &amp; river cruises
         </Link>{" "}
@@ -78,6 +79,15 @@ export default function ContactPage() {
             >
               {siteConfig.email}
             </a>
+            <p className="mt-1 text-sm text-charcoal/70">
+              Alternate:{" "}
+              <a
+                href={`mailto:${siteConfig.emailAlt}`}
+                className="text-ocean hover:underline"
+              >
+                {siteConfig.emailAlt}
+              </a>
+            </p>
           </li>
         </ul>
       </section>
@@ -118,6 +128,18 @@ export default function ContactPage() {
             resources &amp; travel tips
           </Link>
           .
+        </p>
+      </section>
+
+      <section className="mt-12 border-t border-mist pt-12">
+        <h2 className="font-display text-xl text-horizon">
+          Licenses &amp; membership
+        </h2>
+        <p className="mt-4 text-sm text-charcoal/80">
+          {siteConfig.owners}. ASTA member (American Society of Travel Advisors).
+          Seller-of-travel registrations: Florida ST41443, California
+          2113317-40, Washington UBID 603 308 394. Mail:{" "}
+          {siteConfig.mailingAddress}.
         </p>
       </section>
 

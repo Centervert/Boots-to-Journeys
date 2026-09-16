@@ -1,17 +1,25 @@
 "use client";
 
 import NextImage from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
 
 const TOTAL_FRAMES = 782;
-const MOBILE_FRAME_STEP = 2;
-const MOBILE_FRAME_COUNT = Math.floor(TOTAL_FRAMES / MOBILE_FRAME_STEP);
+const FRAME_STEP = 2;
 const ZOOM_MAX = 1.08;
 const FRAME_VERSION = "v2";
 const CRITICAL_FRAME_COUNT = 3;
-const WINDOW_RADIUS = 15;
-const MAX_CONCURRENT_LOADS = 5;
-const MAX_LOADED_FRAMES = 100;
+const WINDOW_RADIUS = 28;
+const LOOKAHEAD_FRAMES = 18;
+const MAX_CONCURRENT_LOADS = 8;
+const MAX_LOADED_FRAMES = 140;
+const HERO_VIDEO_SRC = "/hero-video/destination-reel.mp4";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -21,18 +29,272 @@ const easeInOutCubic = (value: number) =>
     ? 4 * value * value * value
     : 1 - Math.pow(-2 * value + 2, 3) / 2;
 
-const getFrameNumber = (index: number, isMobile: boolean) =>
-  isMobile ? index * MOBILE_FRAME_STEP + 1 : index + 1;
+const getFrameNumber = (index: number) => index * FRAME_STEP + 1;
 
-const formatFrameSrc = (index: number, isMobile: boolean) => {
-  const frame = getFrameNumber(index, isMobile);
+const formatFrameSrc = (index: number) => {
+  const frame = getFrameNumber(index);
   return `/hero-video/ezgif-frame-${String(frame).padStart(
     3,
     "0"
   )}.jpg?v=${FRAME_VERSION}`;
 };
 
-function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return reduced;
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
+}
+
+function measureHeroProgress(section: HTMLElement) {
+  const sectionTop = section.offsetTop;
+  const sectionHeight = section.offsetHeight;
+  const scrollY = window.scrollY;
+  const viewportHeight = window.innerHeight;
+  const end = sectionTop + sectionHeight - viewportHeight;
+  const denominator = end - sectionTop;
+  return denominator <= 0
+    ? 0
+    : clamp((scrollY - sectionTop) / denominator, 0, 1);
+}
+
+function HeroCopy({
+  copyRef,
+  status,
+  animate = false,
+}: {
+  copyRef?: Ref<HTMLDivElement>;
+  status?: string | null;
+  animate?: boolean;
+}) {
+  return (
+    <div className="relative z-10 flex h-full items-center justify-center px-6 sm:px-10 lg:px-16">
+      <div
+        ref={copyRef}
+        className="text-center text-white will-change-[transform,opacity]"
+        style={{
+          textShadow: "0 2px 4px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)",
+          ...(animate
+            ? { opacity: 0.5, transform: "translateY(28px)" }
+            : undefined),
+        }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sunset">
+          Veteran-Owned Travel Concierge
+        </p>
+        <h1 className="mt-6 font-display text-4xl leading-tight text-white/90 sm:text-6xl lg:text-7xl">
+          Bespoke journeys, handled with military precision.
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-base text-white/90 sm:text-lg">
+          We curate luxury vacations, group trips, and exclusive deals for
+          travelers nationwide so you can focus on the adventure. Book a
+          consult to start planning.
+        </p>
+        {status ? (
+          <p className="mt-6 text-xs uppercase tracking-[0.2em] text-white/70">
+            {status}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HeroOverlays() {
+  return (
+    <>
+      <div className="absolute inset-0 bg-white/10" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40"
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
+function HeroFallbackImage({
+  visible,
+  onError,
+}: {
+  visible: boolean;
+  onError: () => void;
+}) {
+  return (
+    <NextImage
+      src="/hero-fallback-v2.jpg"
+      alt=""
+      fill
+      priority
+      sizes="100vw"
+      className={`object-cover transition-opacity duration-500 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
+      aria-hidden
+      onError={onError}
+    />
+  );
+}
+
+function HeroStatic() {
+  const [fallbackFailed, setFallbackFailed] = useState(false);
+
+  return (
+    <section id="hero-scroll" className="-mt-20 h-screen">
+      <div className="relative h-screen w-full overflow-hidden bg-charcoal">
+        {!fallbackFailed && (
+          <HeroFallbackImage
+            visible
+            onError={() => setFallbackFailed(true)}
+          />
+        )}
+        {fallbackFailed && (
+          <div className="absolute inset-0 bg-charcoal" aria-hidden="true" />
+        )}
+        <HeroOverlays />
+        <HeroCopy />
+      </div>
+    </section>
+  );
+}
+
+function HeroVideoReel({
+  isMobile,
+  onUnavailable,
+}: {
+  isMobile: boolean;
+  onUnavailable: () => void;
+}) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const copyRef = useRef<HTMLDivElement | null>(null);
+  const scrollHintRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [fallbackFailed, setFallbackFailed] = useState(false);
+
+  const updateCopyStyle = useCallback((progress: number) => {
+    const copyEl = copyRef.current;
+    const hintEl = scrollHintRef.current;
+    const t = clamp((progress - 0.05) / 0.3, 0, 1);
+    const ease = easeInOutCubic(t);
+    if (copyEl) {
+      copyEl.style.opacity = String(0.5 + 0.5 * ease);
+      copyEl.style.transform = `translateY(${28 * (1 - ease)}px)`;
+    }
+    if (hintEl) {
+      hintEl.style.opacity = String(1 - progress);
+    }
+  }, []);
+
+  const scrubTo = useCallback((progress: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
+      return;
+    }
+    const nextTime = progress * Math.max(video.duration - 0.04, 0);
+    if (Math.abs(video.currentTime - nextTime) < 0.012) return;
+    try {
+      video.currentTime = nextTime;
+    } catch {
+      /* some browsers reject seeks while metadata is settling */
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (rafRef.current) return;
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null;
+        const section = sectionRef.current;
+        if (!section) return;
+        const progress = measureHeroProgress(section);
+        scrubTo(progress);
+        updateCopyStyle(progress);
+      });
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [scrubTo, updateCopyStyle]);
+
+  return (
+    <section
+      id="hero-scroll"
+      ref={sectionRef}
+      className={`${isMobile ? "h-[200vh]" : "h-[260vh]"} -mt-20`}
+    >
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-charcoal relative">
+        {!fallbackFailed && (
+          <HeroFallbackImage
+            visible={!isReady}
+            onError={() => setFallbackFailed(true)}
+          />
+        )}
+        {fallbackFailed && !isReady && (
+          <div className="absolute inset-0 bg-charcoal" aria-hidden="true" />
+        )}
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+            isReady ? "opacity-100" : "opacity-0"
+          }`}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          onLoadedMetadata={(event) => {
+            event.currentTarget.pause();
+            const section = sectionRef.current;
+            if (section) scrubTo(measureHeroProgress(section));
+            setIsReady(true);
+          }}
+          onError={onUnavailable}
+        >
+          <source src={HERO_VIDEO_SRC} type="video/mp4" />
+        </video>
+        <HeroOverlays />
+        <HeroCopy
+          copyRef={copyRef}
+          animate
+          status={!isReady ? "Loading destination reel..." : null}
+        />
+        <div
+          ref={scrollHintRef}
+          className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/70 will-change-[opacity]"
+        >
+          Scroll
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HeroFrameReel({ isMobile }: { isMobile: boolean }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const copyRef = useRef<HTMLDivElement | null>(null);
@@ -43,14 +305,16 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
   const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
   const progressRef = useRef({ frame: 0, progress: 0 });
   const currentFrameRef = useRef(0);
+  const velocityRef = useRef(0);
+  const lastScrollYRef = useRef(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasFirstFrame, setHasFirstFrame] = useState(false);
   const [useFallbackOnly, setUseFallbackOnly] = useState(false);
   const [fallbackImageFailed, setFallbackImageFailed] = useState(false);
 
   const frameCount = useMemo(
-    () => (isMobile ? MOBILE_FRAME_COUNT : TOTAL_FRAMES),
-    [isMobile]
+    () => Math.floor(TOTAL_FRAMES / FRAME_STEP),
+    []
   );
 
   const drawFrame = useCallback(
@@ -139,16 +403,26 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
     }, 2500);
 
     const pumpQueue = () => {
-      if (!mounted || inFlight >= MAX_CONCURRENT_LOADS || loadQueue.length === 0) return;
+      if (!mounted || inFlight >= MAX_CONCURRENT_LOADS || loadQueue.length === 0)
+        return;
       const currentFrame = currentFrameRef.current;
-      loadQueue.sort((a, b) => Math.abs(a - currentFrame) - Math.abs(b - currentFrame));
+      const direction = velocityRef.current >= 0 ? 1 : -1;
+      loadQueue.sort((a, b) => {
+        const biasA = a >= currentFrame === direction > 0 ? 0 : 8;
+        const biasB = b >= currentFrame === direction > 0 ? 0 : 8;
+        return (
+          Math.abs(a - currentFrame) +
+          biasA -
+          (Math.abs(b - currentFrame) + biasB)
+        );
+      });
       while (inFlight < MAX_CONCURRENT_LOADS && loadQueue.length > 0) {
         const i = loadQueue.shift()!;
         if (imagesRef.current[i] || loadedRef.current[i]) continue;
         inFlight += 1;
         const img = new Image();
         imagesRef.current[i] = img;
-        img.src = formatFrameSrc(i, isMobile);
+        img.src = formatFrameSrc(i);
         const onDone = () => {
           inFlight -= 1;
           loadedRef.current[i] = true;
@@ -157,7 +431,9 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
           if (mounted) drawFrame(progressRef.current.progress);
           const criticalReady =
             CRITICAL_FRAME_COUNT <= frameCount &&
-            Array.from({ length: CRITICAL_FRAME_COUNT }, (_, k) => loadedRef.current[k]).every(Boolean);
+            Array.from({ length: CRITICAL_FRAME_COUNT }, (_, k) =>
+              loadedRef.current[k]
+            ).every(Boolean);
           if (mounted && criticalReady) setIsLoaded(true);
           pumpQueue();
         };
@@ -204,27 +480,34 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
       pumpQueue();
     };
 
-    for (let i = 0; i < Math.min(CRITICAL_FRAME_COUNT, frameCount); i += 1) {
-      loadImage(i);
-    }
-
-    const windowInterval = window.setInterval(() => {
+    const loadWindow = () => {
       if (!mounted) return;
       const current = currentFrameRef.current;
-      const low = Math.max(0, current - WINDOW_RADIUS);
-      const high = Math.min(frameCount - 1, current + WINDOW_RADIUS);
+      const ahead = velocityRef.current >= 0 ? LOOKAHEAD_FRAMES : 4;
+      const behind = velocityRef.current < 0 ? LOOKAHEAD_FRAMES : 4;
+      const low = Math.max(0, current - WINDOW_RADIUS - behind);
+      const high = Math.min(frameCount - 1, current + WINDOW_RADIUS + ahead);
       for (let i = low; i <= high; i += 1) {
         if (!loadedRef.current[i] && !imagesRef.current[i]) loadImage(i);
       }
       while (loadedCount > MAX_LOADED_FRAMES) unloadFarthest();
-    }, 250);
+    };
+
+    for (let i = 0; i < Math.min(CRITICAL_FRAME_COUNT, frameCount); i += 1) {
+      loadImage(i);
+    }
+
+    const windowInterval = window.setInterval(loadWindow, 120);
+    const onScrollHint = () => loadWindow();
+    window.addEventListener("scroll", onScrollHint, { passive: true });
 
     return () => {
       mounted = false;
       clearTimeout(fallbackOnlyTimer);
       clearInterval(windowInterval);
+      window.removeEventListener("scroll", onScrollHint);
     };
-  }, [drawFrame, frameCount, isMobile]);
+  }, [drawFrame, frameCount]);
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -233,7 +516,7 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
 
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -271,6 +554,7 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
   }, []);
 
   useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
     const handleScroll = () => {
       if (rafRef.current) return;
       rafRef.current = window.requestAnimationFrame(() => {
@@ -278,20 +562,13 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
         const section = sectionRef.current;
         if (!section) return;
 
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        const scrollY = window.scrollY;
-        const viewportHeight = window.innerHeight;
-        const end = sectionTop + sectionHeight - viewportHeight;
-        const denominator = end - sectionTop;
-        const progress =
-          denominator <= 0
-            ? 0
-            : clamp((scrollY - sectionTop) / denominator, 0, 1);
+        const progress = measureHeroProgress(section);
         const frameIndex = Math.min(
           Math.floor(progress * (frameCount - 1)),
           Math.max(0, frameCount - 1)
         );
+        velocityRef.current = window.scrollY - lastScrollYRef.current;
+        lastScrollYRef.current = window.scrollY;
 
         currentFrameRef.current = frameIndex;
         progressRef.current = { frame: frameIndex, progress };
@@ -318,63 +595,25 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden bg-charcoal relative">
         {!fallbackImageFailed && (
-          <NextImage
-            src="/hero-fallback-v2.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className={`object-cover transition-opacity duration-500 ${
-              hasFirstFrame ? "opacity-0" : "opacity-100"
-            }`}
-            aria-hidden
+          <HeroFallbackImage
+            visible={!hasFirstFrame}
             onError={() => setFallbackImageFailed(true)}
           />
         )}
         {fallbackImageFailed && (
-          <div
-            className="absolute inset-0 bg-charcoal"
-            aria-hidden="true"
-          />
+          <div className="absolute inset-0 bg-charcoal" aria-hidden="true" />
         )}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full"
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-white/10" aria-hidden="true" />
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40"
-          aria-hidden="true"
+        <HeroOverlays />
+        <HeroCopy
+          copyRef={copyRef}
+          animate
+          status={!isLoaded && !useFallbackOnly ? "Loading destination reel..." : null}
         />
-        <div className="relative z-10 flex h-full items-center justify-center px-6 sm:px-10 lg:px-16">
-          <div
-            ref={copyRef}
-            className="text-center text-white will-change-[transform,opacity]"
-            style={{
-              textShadow:
-                "0 2px 4px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)",
-              opacity: 0.5,
-              transform: "translateY(28px)",
-            }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sunset">
-              Veteran-Owned Travel Concierge
-            </p>
-            <h1 className="mt-6 font-display text-4xl leading-tight text-white/90 sm:text-6xl lg:text-7xl">
-              Bespoke journeys, handled with military precision.
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base text-white/90 sm:text-lg">
-              We curate luxury vacations, group trips, and exclusive deals so
-              you can focus on the adventure. Book a consult to start planning.
-            </p>
-            {!isLoaded && !useFallbackOnly && (
-              <p className="mt-6 text-xs uppercase tracking-[0.2em] text-white/70">
-                Loading destination reel...
-              </p>
-            )}
-          </div>
-        </div>
         <div
           ref={scrollHintRef}
           className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/70 will-change-[opacity]"
@@ -387,17 +626,25 @@ function HeroScrollReel({ isMobile }: { isMobile: boolean }) {
 }
 
 export function HeroScroll() {
-  const [isMobile, setIsMobile] = useState(false);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const isMobile = useIsMobile();
+  const [useFrames, setUseFrames] = useState(false);
 
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
+  if (prefersReducedMotion) {
+    return <HeroStatic />;
+  }
+
+  if (useFrames) {
+    return (
+      <HeroFrameReel key={isMobile ? "mobile-frames" : "desktop-frames"} isMobile={isMobile} />
+    );
+  }
 
   return (
-    <HeroScrollReel key={isMobile ? "mobile" : "desktop"} isMobile={isMobile} />
+    <HeroVideoReel
+      key={isMobile ? "mobile-video" : "desktop-video"}
+      isMobile={isMobile}
+      onUnavailable={() => setUseFrames(true)}
+    />
   );
 }

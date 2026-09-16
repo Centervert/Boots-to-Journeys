@@ -25,7 +25,7 @@ export function Testimonials() {
             Testimonials
           </p>
           <h2 className="mt-3 font-display text-3xl text-horizon">
-            Trusted by travelers across the Carolinas
+            Trusted by travelers nationwide
           </h2>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">

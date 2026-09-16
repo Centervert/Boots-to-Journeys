@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
 import { HeroScroll } from "@/components/home/HeroScroll";
 import { LuxuryExpertsSection } from "@/components/home/LuxuryExpertsSection";
+import { ProcessSteps } from "@/components/home/ProcessSteps";
 import { TravelDiscovery } from "@/components/home/TravelDiscovery";
+import { CredentialsBar } from "@/components/layout/Credentials";
 import { LocalBusinessJsonLd } from "@/components/seo/LocalBusinessJsonLd";
-import { siteUrlString } from "@/lib/site-config";
+import { siteConfig, siteUrlString } from "@/lib/site-config";
 
 const canonical = siteUrlString();
 
 export const metadata: Metadata = {
   title: "Boots to Journeys | Veteran-owned travel concierge",
-  description:
-    "Plan custom vacations with a veteran-owned South Carolina travel concierge: luxury trips, cruises, all-inclusive resorts, group travel, honeymoons, and faith-based journeys — with personalized itineraries and white-glove support.",
+  description: siteConfig.description,
   keywords: [
     "Boots to Journeys",
-    "South Carolina travel agent",
     "veteran owned travel agency",
+    "nationwide travel concierge",
     "luxury travel concierge",
     "custom vacation itinerary",
     "cruise travel planner",
-    "group travel South Carolina",
+    "all-inclusive resort planner",
+    "group travel planner",
   ],
   alternates: { canonical },
   openGraph: {
@@ -36,7 +38,9 @@ export default function Home() {
       <LocalBusinessJsonLd />
       <HeroScroll />
       <LuxuryExpertsSection />
+      <ProcessSteps />
       <TravelDiscovery />
+      <CredentialsBar />
     </>
   );
 }

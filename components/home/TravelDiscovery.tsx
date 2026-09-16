@@ -18,6 +18,11 @@ type Card = { title: string; image: string; subtitle?: string };
 const cards: Record<TabKey, Array<Card>> = {
   traveler: [
     { title: "Family", image: "/travel-family.jpg" },
+    // TODO(shannon-2026-07-18): Couples still uses /travel-couples.jpg
+    // (young couple at a ferry rail). Shannon asked for an older couple.
+    // No suitable licensed older-couple photo exists in public/ or on the
+    // legacy Voyager site. Do not invent people or pull random stock.
+    // Swap when Shannon or Michael provide an approved image.
     { title: "Couples", image: "/travel-couples.jpg" },
     { title: "Groups", image: "/travel-groups.jpg" },
     { title: "Honeymoon", image: "/travel-honeymoon.jpg" },

@@ -20,7 +20,7 @@ const websiteUpdates = [
     update: "SEO & discoverability",
     status: "Done",
     details:
-      "Search-friendly titles and descriptions, social preview tags, sitemap and robots files, rich business data on the homepage, and a contact page written to help locals and travelers reach you.",
+      "Search-friendly titles and descriptions, social preview tags, sitemap and robots files, rich business data on the homepage, and a contact page written to help travelers nationwide reach you.",
   },
   {
     update: "Privacy & terms",
@@ -224,7 +224,7 @@ export default function OurPlanPage() {
         <SectionKicker>Brand</SectionKicker>
         <SectionTitle className="mt-2">Design style</SectionTitle>
         <p className="mt-6 text-charcoal/80">
-          The site is built to match Boots to Journeys&apos; positioning: veteran-owned, military precision, luxury travel, and South Carolina roots. Clean typography (Playfair Display for headlines, Inter for body), a restrained palette (horizon navy, ocean teal, sunset gold, charcoal), and plenty of whitespace so the content and imagery lead. Every section is built to feel high-end and trustworthy—so when we send traffic here from ads and social, visitors see a brand that matches the promise.
+          The site is built to match Boots to Journeys&apos; positioning: veteran-owned, military precision, luxury travel, and a nationwide clientele with South Carolina headquarters. Clean typography (Playfair Display for headlines, Inter for body), a restrained palette (horizon navy, ocean teal, sunset gold, charcoal), and plenty of whitespace so the content and imagery lead. Every section is built to feel high-end and trustworthy—so when we send traffic here from ads and social, visitors see a brand that matches the promise.
         </p>
       </Section>
 
