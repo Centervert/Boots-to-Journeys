@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HeroScroll } from "@/components/home/HeroScroll";
+import { Hero } from "@/components/home/Hero";
 import { LuxuryExpertsSection } from "@/components/home/LuxuryExpertsSection";
 import { ProcessSteps } from "@/components/home/ProcessSteps";
 import { TravelDiscovery } from "@/components/home/TravelDiscovery";
@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <>
       <LocalBusinessJsonLd />
-      <HeroScroll />
+      <Hero />
       <LuxuryExpertsSection />
       <ProcessSteps />
       <TravelDiscovery />
