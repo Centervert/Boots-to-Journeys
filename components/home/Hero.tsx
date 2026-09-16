@@ -30,7 +30,7 @@ export function Hero() {
           className="object-cover object-center"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50"
+          className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/50"
           aria-hidden="true"
         />
         <div className="relative z-10 flex h-full items-center justify-center px-6 sm:px-10 lg:px-16">
