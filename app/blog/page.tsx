@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Blog & Deals | Boots to Journeys",
   description:
-    "Travel tips, destination guides, and exclusive deals from Boots to Journeys.",
+    "Travel tips, destination guides, and exclusive deals from Boots to Journeys for travelers nationwide.",
 };
 
 export default function BlogPage() {
@@ -16,9 +18,15 @@ export default function BlogPage() {
         Tips and offers
       </h1>
       <p className="mt-6 text-charcoal/80">
-        Full content coming soon. Travel inspiration and exclusive deals for
-        South Carolina travelers.
+        Destination stories and exclusive deals will live here. In the
+        meantime, start with a complimentary planning call — we watch
+        sailings, resort perks, and group departures for clients nationwide.
       </p>
+      <div className="mt-8">
+        <Link href="/book">
+          <Button size="lg">Book a planning call</Button>
+        </Link>
+      </div>
     </section>
   );
 }

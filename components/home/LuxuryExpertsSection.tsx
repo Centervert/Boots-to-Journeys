@@ -36,7 +36,8 @@ export function LuxuryExpertsSection() {
             After 28 years of military service, we learned that the best
             missions are the ones worth coming home to. Boots to Journeys was
             born from a simple belief: travel should reconnect you with the
-            people and places that matter most.
+            people and places that matter most. Based in South Carolina, we
+            serve clients nationwide.
           </p>
           <div className="mt-8 flex justify-center">
             <Link href="/book">

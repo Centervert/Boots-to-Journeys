@@ -42,7 +42,7 @@ Place these files in `public/` (or `public/hero-video/` where noted). Missing im
 | Category | Path(s) |
 |----------|---------|
 | **Branding** | `logo-btj.png`, `footer-center-logo.png` |
-| **Hero** | `hero-fallback-v2.jpg`, `hero-video/ezgif-frame-001.jpg` … `ezgif-frame-782.jpg` |
+| **Hero** | `hero-fallback-v2.jpg`, `hero-video/destination-reel.mp4` (scroll-scrubbed), plus `hero-video/ezgif-frame-001.jpg` … `ezgif-frame-782.jpg` as fallback |
 | **Booking** | `start-booking-hero.jpg` |
 | **About** | `veteran-values.jpg`, `expert-planning.png`, `experts-2.jpg` |
 | **Travel discovery** | `travel-family.jpg`, `travel-couples.jpg`, `travel-groups.jpg`, `travel-honeymoon.jpg`, `travel-solo.jpg` |
