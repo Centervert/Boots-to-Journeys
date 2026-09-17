@@ -25,7 +25,7 @@ const differentiators = [
 
 export function LuxuryExpertsSection() {
   return (
-    <section id="about" className="relative overflow-hidden bg-white py-24">
+    <section id="about" className="relative overflow-hidden bg-white pt-16 pb-8 sm:pt-20">
       <div className="pointer-events-none absolute right-0 top-10 hidden h-64 w-64 bg-[url('/soft-contour.svg')] bg-contain bg-no-repeat opacity-60 md:block" />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
@@ -46,7 +46,7 @@ export function LuxuryExpertsSection() {
           </div>
         </div>
 
-        <div className="mt-20 text-center">
+        <div className="mt-16 text-center">
           <h2 className="text-2xl font-semibold uppercase tracking-[0.3em] text-charcoal">
             What we believe
           </h2>
