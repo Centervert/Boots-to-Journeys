@@ -38,7 +38,7 @@ export default function Home() {
       <LocalBusinessJsonLd />
       <Hero />
       <LuxuryExpertsSection />
-      <ProcessSteps />
+      <ProcessSteps className="pt-8 pb-16 sm:pb-20" />
       <TravelDiscovery />
       <CredentialsBar />
     </>

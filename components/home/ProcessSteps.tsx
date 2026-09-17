@@ -16,9 +16,13 @@ const steps = [
   },
 ];
 
-export function ProcessSteps() {
+export function ProcessSteps({
+  className = "py-24",
+}: {
+  className?: string;
+} = {}) {
   return (
-    <section className="bg-white py-24">
+    <section className={`bg-white ${className}`}>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ocean">

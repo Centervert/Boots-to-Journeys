@@ -68,9 +68,9 @@ export function TravelDiscovery() {
   const [active, setActive] = useState<TabKey>("traveler");
 
   return (
-    <section className="bg-cloud py-24">
+    <section className="bg-cloud pt-12 pb-16 sm:pt-16 sm:pb-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 h-px w-full bg-mist" />
+        <div className="mb-8 h-px w-full bg-mist" />
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
